@@ -6,18 +6,17 @@ Containers for holding all the necessary data for validating cryptocurrencies.
 """
 
 import attr
-from zope.interface import implementer, provider
+from typing import Dict, Any, Optional
 
 from .interfaces import ICurrency, INamedInstanceContainer
 from .base import NamedInstanceContainerBase
 
 
-@provider(INamedInstanceContainer)
 class Currencies(metaclass=NamedInstanceContainerBase):
     """Container for all currencies."""
 
     @classmethod
-    def get(cls, name, default=None):
+    def get(cls, name: str, default: Any = None) -> Any:
         """Return currency object with matching name or ticker."""
         for inst in cls.instances.values():
             if name in (inst.name, inst.ticker):
@@ -29,36 +28,26 @@ class Currencies(metaclass=NamedInstanceContainerBase):
 class CurrencyMeta(type):
     """Register currency classes on Currencies.currencies."""
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         inst = super(CurrencyMeta, cls).__call__(*args, **kwargs)
         Currencies[inst.name] = inst
         return inst
 
 
-@implementer(ICurrency)
 @attr.s(frozen=True, slots=True, cmp=False)
 class Currency(metaclass=CurrencyMeta):
     """An immutable representation of a cryptocurrency specification."""
 
-    name = attr.ib(
-        type=str,
-        validator=attr.validators.instance_of(str))
-    ticker = attr.ib(
-        type=str,
-        validator=attr.validators.instance_of(str))
-    validator = attr.ib(
-        type='str',
-        validator=attr.validators.instance_of(str))
+    name = attr.ib(validator=attr.validators.instance_of(str))
+    ticker = attr.ib(validator=attr.validators.instance_of(str))
+    validator = attr.ib(validator=attr.validators.instance_of(str))
     networks = attr.ib(
-        type=dict,
         validator=attr.validators.optional(attr.validators.instance_of(dict)),
         default=attr.Factory(dict))
     address_types = attr.ib(
-        type=dict,
         validator=attr.validators.optional(attr.validators.instance_of(dict)),
         default=attr.Factory(dict))
     charset = attr.ib(
-        type=bytes,
         validator=attr.validators.optional(attr.validators.instance_of(bytes)),
         default=None)
 
